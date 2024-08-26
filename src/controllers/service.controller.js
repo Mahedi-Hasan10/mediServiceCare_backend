@@ -6,38 +6,42 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const createService = asyncHandler(async (req, res) => {
   const { subTitle, title, description } = req.body;
+  console.log("🚀 ~ createService ~ subTitle, title, description:", subTitle, title, description)
   const imageLocalPath = req.files?.image[0]?.path;
 
   if (!imageLocalPath) throw new ApiError(400, "Image file is required");
-  if (subTitle || title || description)
+  if (!subTitle || !title || !description)
     throw new ApiError(400, "All fields are required!");
   if (!req.user?._id) throw new ApiError(400, "Unathorized Request!");
 
-  const image = await uploadOnCloudinary(imageLocalPath);
-  if (!image) {
-    throw new ApiError(400, "Image file is required");
-  }
-  const service = await Service.create({
-    subTitle,
-    title,
-    description,
-    image: image.url,
-  });
+  // const image = await uploadOnCloudinary(imageLocalPath);
+  // if (!image) {
+  //   throw new ApiError(400, "Image file is required");
+  // }
+  // const service = await Service.create({
+  //   subTitle,
+  //   title,
+  //   description,
+  //   image: image.url,
+  // });
 
-  if (!service) {
-    throw new ApiError(500, "Something went wrong while creating service");
-  }
+  // if (!service) {
+  //   throw new ApiError(500, "Something went wrong while creating service");
+  // }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, service, "Service Created Successfully!"));
+    .json(new ApiResponse(200,
+      //  service, 
+       "Service Created Successfully!"));
 });
 const getServices = asyncHandler(async (req, res) => {
-  const services = Service.find();
+  const services = await Service.find(); 
   return res
     .status(200)
-    .json(new ApiResponse(200, services, "Service fethed Successfully!"));
+    .json(new ApiResponse(200, services, "Services fetched successfully!"));
 });
+
 const getServiceDetails = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id) throw new ApiError(400, "ID not  found");

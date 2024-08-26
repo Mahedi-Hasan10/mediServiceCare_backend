@@ -35,8 +35,6 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with email or username already exists");
   }
-  //console.log(req.files);
-
   const avatarLocalPath = req.files?.avatar[0]?.path;
 
   if (!avatarLocalPath) {
@@ -71,14 +69,12 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, username, password } = req.body;
-  if (!email && !username) {
-    throw new ApiError(400, "Username or email is required!");
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new ApiError(400, "Email and password are required!");
   }
 
-  const user = await User.findOne({
-    $or: [{ username }, { email }],
-  });
+  const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(401, "User not found");
   }
@@ -89,9 +85,9 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   const { userAccessToken, userRefreshToken } =
-    await generateAccessAndRefreshToken(user?._id);
+    await generateAccessAndRefreshToken(user._id);
 
-  const loggedInUser = await User.findById(user?._id).select(
+  const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
   const options = {
@@ -115,6 +111,7 @@ const loginUser = asyncHandler(async (req, res) => {
       )
     );
 });
+
 
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
