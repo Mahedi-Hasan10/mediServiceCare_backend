@@ -2,7 +2,13 @@ import { Router } from "express";
 
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { createService, getServices } from "../controllers/service.controller.js";
+import {
+  createService,
+  deleteService,
+  getServiceDetails,
+  getServices,
+  updateService,
+} from "../controllers/service.controller.js";
 
 const router = Router();
 
@@ -20,12 +26,24 @@ const router = Router();
 //   registerUser
 // );
 
-router.route("/").get(getServices)
-.post(upload.fields([
-    {
-      name: "image",
-      maxCount: 1,
-    }
-]), createService);
+router
+  .route("/")
+  .get(getServices)
+  .post(
+    upload.fields([
+      {
+        name: "image",
+        maxCount: 1,
+      },
+    ]),
+    verifyJWT,
+    createService
+  );
+
+router
+  .route("/:id")
+  .patch(verifyJWT, upload.single("image"), updateService)
+  .delete(verifyJWT, deleteService)
+  .get(getServiceDetails)
 
 export default router;
