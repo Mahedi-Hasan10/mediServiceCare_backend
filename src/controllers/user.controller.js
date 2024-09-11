@@ -234,6 +234,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!avatar) {
     throw new ApiError(400, "Error while uploading on avatar");
   }
+  if (user?.avatar) {
+    await removeFromCloudinary(user?.avatar, "image")
+  }
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {

@@ -2,7 +2,7 @@ import { Service } from "../models/service.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { removeFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const createService = asyncHandler(async (req, res) => {
   const { subTitle, title, description } = req.body;
@@ -88,9 +88,11 @@ const deleteService = asyncHandler(async (req, res) => {
   if (!id) throw new ApiError(400, "Service Id Not Found!");
   if (!req.user._id) throw new ApiError(400, "Unauthorized request");
   const service = await Service.findById(id);
+  if (service.image) {
+    await removeFromCloudinary(service.image, 'image');
+  }
   if (!service) throw new ApiError(401, "Service Not Found!");
   await Service.findByIdAndDelete(id);
-
   return res
     .status(200)
     .json(new ApiResponse(200, "Service deleted successfully"));

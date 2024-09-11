@@ -2,7 +2,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Testimonial } from "../models/testimonial.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { removeFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const createTestimonials = asyncHandler(async (req, res) => {
     const { client, designation, message } = req.body
@@ -40,7 +40,9 @@ const deleteTestimonials = asyncHandler(async (req, res) => {
     if (!id) throw new ApiError(400, "Testimonial Id is required!")
     const testimonial = await Testimonial.findById(id)
     if (!testimonial) throw new ApiError(400, "Testimonial Already Deleted!")
+    if (testimonial.avatar) await removeFromCloudinary(testimonial.avatar, "image")
     await Testimonial.findByIdAndDelete(id)
+
     return res.status(200)
         .json(new ApiResponse(200, "Testimonial deleted Successfully"))
 })

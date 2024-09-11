@@ -23,28 +23,46 @@ const uploadOnCloudinary = async (localFilePath) => {
     return null;
   }
 };
-const removeFromCloudinary = async (fileUrl, resource_type) => {
+const removeFromCloudinary = async (fileUrl, resource_type = "image") => {
   try {
     if (!fileUrl) throw new Error("File URL is required");
 
     // Extract the public ID from the URL
-    const publicId = fileUrl.split("/").slice(-2).join("/").split(".")[0];
-
-    // Remove video from Cloudinary
+    const publicId = fileUrl.split("/").pop().split(".")[0];
+    // Remove file from Cloudinary
     const result = await cloudinary.api.delete_resources([publicId], {
       type: "upload",
       resource_type: resource_type,
     });
-    console.log(result);
-    // if (result.deleted[publicId] !== "deleted") {
-    //   throw new Error("Failed to remove file from Cloudinary");
-    // }
-    // return result;
-    return;
+
+    if (result.deleted[publicId] === "not_found") {
+      throw new Error("File not found on Cloudinary");
+    }
+
+    console.log("File successfully deleted from Cloudinary:", result);
+    return result;
   } catch (error) {
-    console.error("Error removing from Cloudinary:", error);
+    console.error("Error removing from Cloudinary:", error.message || error);
     return null;
   }
 };
 
-export { uploadOnCloudinary, removeFromCloudinary };
+const uploadMultipleFilesOnCloudinary = async (filePathsArray) => {
+  try {
+    if (!Array.isArray(filePathsArray) || filePathsArray.length === 0)
+      return null;
+
+    const uploadPromises = filePathsArray.map((filePath) =>
+      uploadOnCloudinary(filePath)
+    );
+
+    const results = await Promise.all(uploadPromises);
+
+    console.log("All files uploaded on Cloudinary:", results);
+    return results;
+  } catch (error) {
+    console.error("Error uploading multiple files:", error.message || error);
+    return null;
+  }
+};
+export { uploadOnCloudinary, removeFromCloudinary, uploadMultipleFilesOnCloudinary };
